@@ -1,0 +1,93 @@
+:root {
+  --color-navy-950: #0a1220;
+  --color-navy-900: #101d30;
+  --color-navy-800: #16283f;
+  --color-navy-700: #203551;
+  --color-forest-900: #16251d;
+
+  --color-gray-100: #f3eee2;
+  --color-gray-200: #e2d9c5;
+  --color-gray-400: #a99b81;
+  --color-gray-600: #5c5548;
+
+  --color-orange-500: #b8935a;
+  --color-orange-600: #9c7845;
+  --color-orange-100: #ece0c8;
+
+  --color-white: #ffffff;
+  --color-page-bg: #faf7f0;
+
+  --radius: 3px;
+  --shadow-sm: 0 1px 2px rgba(10, 18, 32, 0.06);
+  --shadow-md: 0 10px 28px rgba(10, 18, 32, 0.14);
+
+  --max-width: 1120px;
+  --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Noto Serif KR', 'Nanum Myeongjo', serif;
+
+  font-family: var(--font-sans);
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-page-bg);
+  color: var(--color-navy-900);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-navy-900);
+}
+
+p {
+  margin: 0;
+}
+
+ul,
+dl {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+dt,
+dd {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+#root {
+  min-height: 100vh;
+}

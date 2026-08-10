@@ -1,0 +1,33 @@
+name: Fetch 나라장터 입찰정보
+
+on:
+  schedule:
+    # 4시간마다 실행 (UTC 기준 - 한국시간 = UTC+9)
+    - cron: '0 */4 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 입찰정보 가져오기
+        env:
+          G2B_SERVICE_KEY: ${{ secrets.G2B_SERVICE_KEY }}
+        run: node scripts/fetch-bids.mjs
+
+      - name: 변경사항 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/bids.json
+          git diff --cached --quiet || git commit -m "chore: 나라장터 입찰정보 자동 업데이트"
+          git push
