@@ -31,7 +31,7 @@ async function loadDotEnv() {
   }
 }
 
-const ENDPOINT = 'https://apis.data.go.kr/1230000/BidPublicInfoService/getBidPblancListInfoCnstwkPPSSrch'
+const ENDPOINT = 'https://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoCnstwkPPSSrch'
 const KEYWORDS = ['상수도', '하수도']
 const REGION_KEYWORDS = ['서울', '경기', '인천']
 const LOOKBACK_DAYS = 21
