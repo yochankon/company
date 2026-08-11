@@ -9,6 +9,11 @@ on:
 permissions:
   contents: write
 
+# 동시에 여러 실행이 겹쳐서 git push가 충돌하는 것을 방지 - 한 번에 하나씩만 실행
+concurrency:
+  group: fetch-bids
+  cancel-in-progress: false
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
@@ -30,5 +35,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/data/bids.json
           git diff --cached --quiet || git commit -m "chore: 나라장터 입찰정보 자동 업데이트"
-          git pull --rebase origin main
-          git push
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main
+            git push && break
+            sleep $((RANDOM % 5 + 1))
+          done
