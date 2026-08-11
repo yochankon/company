@@ -26,7 +26,7 @@ async function loadDotEnv() {
   }
 }
 
-const ENDPOINT = 'http://apis.data.go.kr/1230000/BidPublicInfoService/getBidPblancListInfoCnstwkPPSSrch'
+const ENDPOINT = 'https://apis.data.go.kr/1230000/BidPublicInfoService/getBidPblancListInfoCnstwkPPSSrch'
 const KEYWORDS = ['상수도', '하수도']
 const REGION_KEYWORDS = ['서울', '경기', '인천']
 const LOOKBACK_DAYS = 21
@@ -43,12 +43,18 @@ function formatDateTime(date) {
   )
 }
 
+// data.go.kr은 "Encoding(이미 %인코딩됨)" / "Decoding(원문)" 두 종류의 인증키를 발급한다.
+// URLSearchParams에 그대로 넣으면 Encoding 키는 이중 인코딩되어 400 오류가 난다.
+// 이미 percent-encoding된 키는 그대로 쓰고, 아니면 한 번만 인코딩한다.
+function encodeServiceKey(key) {
+  return /%[0-9A-Fa-f]{2}/.test(key) ? key : encodeURIComponent(key)
+}
+
 async function fetchKeyword(serviceKey, keyword) {
   const now = new Date()
   const begin = new Date(now.getTime() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
 
   const params = new URLSearchParams({
-    ServiceKey: serviceKey,
     inqryDiv: '1',
     inqryBgnDt: formatDateTime(begin),
     inqryEndDt: formatDateTime(now),
@@ -58,16 +64,27 @@ async function fetchKeyword(serviceKey, keyword) {
     pageNo: '1',
   })
 
-  const res = await fetch(`${ENDPOINT}?${params}`)
+  const url = `${ENDPOINT}?ServiceKey=${encodeServiceKey(serviceKey)}&${params}`
+  const res = await fetch(url)
+  const bodyText = await res.text()
+
   if (!res.ok) {
-    throw new Error(`나라장터 API 요청 실패 (${keyword}): ${res.status} ${res.statusText}`)
+    throw new Error(
+      `나라장터 API 요청 실패 (${keyword}): ${res.status} ${res.statusText}\n응답 내용: ${bodyText.slice(0, 500)}`,
+    )
   }
 
-  const data = await res.json()
+  let data
+  try {
+    data = JSON.parse(bodyText)
+  } catch {
+    throw new Error(`나라장터 API 응답이 JSON이 아닙니다 (${keyword}).\n응답 내용: ${bodyText.slice(0, 500)}`)
+  }
+
   const items = data?.response?.body?.items
   if (!items) {
     const header = data?.response?.header
-    console.warn(`[${keyword}] 결과 없음 또는 오류 응답:`, header ?? data)
+    console.warn(`[${keyword}] 결과 없음 또는 오류 응답:`, JSON.stringify(header ?? data))
     return []
   }
   return Array.isArray(items) ? items : [items]
