@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { db } from '../firebase.js'
 
+const REFRESH_URL = 'https://fetchbidsnow-njmh476b2q-du.a.run.app'
+
 function parseDate(value) {
   if (!value) return null
   const normalized = value.includes('T') ? value : value.replace(' ', 'T')
@@ -47,6 +49,8 @@ function Bids() {
   const [bids, setBids] = useState(null)
   const [updatedAt, setUpdatedAt] = useState(null)
   const [error, setError] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshMessage, setRefreshMessage] = useState(null)
 
   useEffect(() => {
     const unsubBids = onSnapshot(
@@ -67,6 +71,30 @@ function Bids() {
     }
   }, [])
 
+  async function handleRefresh() {
+    setRefreshing(true)
+    setRefreshMessage(null)
+
+    try {
+      const res = await fetch(REFRESH_URL)
+      const data = await res.json().catch(() => ({}))
+
+      if (res.status === 429) {
+        setRefreshMessage({ tone: 'limited', text: data.message || '오늘 조회 가능 횟수를 모두 사용했습니다. 내일 다시 시도해주세요.' })
+      } else if (!res.ok) {
+        setRefreshMessage({ tone: 'error', text: '최신 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.' })
+      } else if (!data.count) {
+        setRefreshMessage({ tone: 'empty', text: '최신 정보를 확인했지만 조건에 맞는 새 공고가 없습니다.' })
+      } else {
+        setRefreshMessage({ tone: 'success', text: `최신 정보 ${data.count}건을 확인했습니다.` })
+      }
+    } catch {
+      setRefreshMessage({ tone: 'error', text: '최신 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.' })
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   return (
     <div className="page">
       <section className="page-hero">
@@ -79,7 +107,14 @@ function Bids() {
       </section>
 
       <section className="section">
-        {updatedAt && <p className="bids-updated">마지막 업데이트: {formatDate(updatedAt)}</p>}
+        <div className="bids-toolbar">
+          {updatedAt && <p className="bids-updated">마지막 업데이트: {formatDate(updatedAt)}</p>}
+          <button type="button" className="btn btn-ghost-light" onClick={handleRefresh} disabled={refreshing}>
+            {refreshing ? '확인 중...' : '최신 데이터 가져오기'}
+          </button>
+        </div>
+
+        {refreshMessage && <p className={`bids-refresh-msg bids-refresh-${refreshMessage.tone}`}>{refreshMessage.text}</p>}
 
         {error && (
           <div className="bids-empty">

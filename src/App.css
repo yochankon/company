@@ -651,10 +651,49 @@
 }
 
 /* ---------- Bids page ---------- */
+.bids-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bids-toolbar .btn {
+  padding: 9px 18px;
+  font-size: 14px;
+  border-color: var(--color-gray-200);
+  color: var(--color-navy-900);
+}
+
 .bids-updated {
   font-size: 13px;
   color: var(--color-gray-600);
+  margin: 0;
+}
+
+.bids-refresh-msg {
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
   margin-bottom: 20px;
+}
+
+.bids-refresh-success {
+  background: var(--color-orange-100);
+  color: var(--color-orange-600);
+}
+
+.bids-refresh-empty {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.bids-refresh-limited,
+.bids-refresh-error {
+  background: #f3e0da;
+  color: #a3402f;
 }
 
 .bids-empty {

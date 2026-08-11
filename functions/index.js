@@ -184,7 +184,46 @@ exports.fetchBids = onSchedule(
   },
 )
 
-// 배포 직후나 필요할 때 브라우저/curl로 바로 호출해서 수동 갱신할 수 있는 HTTP 엔드포인트
+const DAILY_LIMIT = 100
+const ALLOWED_ORIGINS = [
+  'https://yochan-tokgeon.web.app',
+  'https://yochan-tokgeon.firebaseapp.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+]
+
+// 하루 호출 횟수를 Firestore 트랜잭션으로 세서 DAILY_LIMIT을 넘으면 막는다
+// (사용자가 화면의 "최신 데이터 가져오기" 버튼을 눌렀을 때만 적용 - 자동 스케줄 실행에는 적용 안 됨)
+async function checkAndIncrementRateLimit(db) {
+  const today = new Date().toISOString().slice(0, 10)
+  const ref = db.collection('meta').doc('rateLimit')
+
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref)
+    const data = snap.exists ? snap.data() : {}
+
+    if (data.date === today) {
+      if (data.count >= DAILY_LIMIT) {
+        return { allowed: false, remaining: 0 }
+      }
+      tx.set(ref, { date: today, count: data.count + 1 })
+      return { allowed: true, remaining: DAILY_LIMIT - data.count - 1 }
+    }
+
+    tx.set(ref, { date: today, count: 1 })
+    return { allowed: true, remaining: DAILY_LIMIT - 1 }
+  })
+}
+
+function setCors(req, res) {
+  const origin = req.headers.origin
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.set('Access-Control-Allow-Origin', origin)
+  }
+}
+
+// 화면의 "최신 데이터 가져오기" 버튼이 호출하는 엔드포인트. 하루 100회로 제한된다.
 exports.fetchBidsNow = onRequest(
   {
     region: 'asia-northeast3',
@@ -192,12 +231,25 @@ exports.fetchBidsNow = onRequest(
     timeoutSeconds: 120,
   },
   async (req, res) => {
+    setCors(req, res)
+
     try {
+      const db = getFirestore()
+      const { allowed, remaining } = await checkAndIncrementRateLimit(db)
+
+      if (!allowed) {
+        res.status(429).json({
+          error: 'rate_limited',
+          message: '오늘 조회 가능 횟수를 모두 사용했습니다. 내일 다시 시도해주세요.',
+        })
+        return
+      }
+
       const count = await syncBidsToFirestore(G2B_SERVICE_KEY.value())
-      res.status(200).send(`${count}건 저장 완료`)
+      res.status(200).json({ count, remaining })
     } catch (err) {
       console.error(err)
-      res.status(500).send(err.message)
+      res.status(500).json({ error: 'internal_error', message: err.message })
     }
   },
 )
