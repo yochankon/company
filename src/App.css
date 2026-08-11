@@ -113,12 +113,16 @@
 
 .mobile-call {
   display: none;
-  place-items: center;
-  width: 38px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
   height: 38px;
   border-radius: var(--radius);
   background: var(--color-orange-500);
   color: var(--color-navy-900);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
   flex: none;
 }
 
@@ -846,7 +850,7 @@
   }
 
   .mobile-call {
-    display: grid;
+    display: flex;
   }
 
   .nav {
@@ -863,10 +867,13 @@
     display: none;
   }
 
-  .nav-link,
-  .nav-cta {
+  .nav-link {
     flex: none;
     white-space: nowrap;
+  }
+
+  .nav-cta {
+    display: none;
   }
 
   .nav-link {
