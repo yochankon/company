@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore'
+import { db } from '../firebase.js'
 
 function parseDate(value) {
   if (!value) return null
@@ -42,17 +44,27 @@ function formatPrice(value) {
 }
 
 function Bids() {
-  const [data, setData] = useState(null)
+  const [bids, setBids] = useState(null)
+  const [updatedAt, setUpdatedAt] = useState(null)
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    fetch('/data/bids.json')
-      .then((res) => {
-        if (!res.ok) throw new Error('not ok')
-        return res.json()
-      })
-      .then(setData)
-      .catch(() => setError(true))
+    const unsubBids = onSnapshot(
+      query(collection(db, 'bids'), orderBy('deadline', 'asc')),
+      (snapshot) => setBids(snapshot.docs.map((d) => d.data())),
+      () => setError(true),
+    )
+
+    const unsubMeta = onSnapshot(
+      doc(db, 'meta', 'bids'),
+      (snapshot) => setUpdatedAt(snapshot.exists() ? snapshot.data().updatedAt : null),
+      () => setError(true),
+    )
+
+    return () => {
+      unsubBids()
+      unsubMeta()
+    }
   }, [])
 
   return (
@@ -67,9 +79,7 @@ function Bids() {
       </section>
 
       <section className="section">
-        {data?.updatedAt && (
-          <p className="bids-updated">마지막 업데이트: {formatDate(data.updatedAt)}</p>
-        )}
+        {updatedAt && <p className="bids-updated">마지막 업데이트: {formatDate(updatedAt)}</p>}
 
         {error && (
           <div className="bids-empty">
@@ -77,7 +87,7 @@ function Bids() {
           </div>
         )}
 
-        {!error && data && data.bids.length === 0 && (
+        {!error && bids && bids.length === 0 && (
           <div className="bids-empty">
             <p>아직 표시할 입찰공고가 없습니다.</p>
             <small>
@@ -86,9 +96,9 @@ function Bids() {
           </div>
         )}
 
-        {!error && data && data.bids.length > 0 && (
+        {!error && bids && bids.length > 0 && (
           <div className="bid-list">
-            {data.bids.map((bid) => (
+            {bids.map((bid) => (
               <div key={bid.id} className="bid-card">
                 <div className="bid-card-head">
                   <h3>{bid.title}</h3>

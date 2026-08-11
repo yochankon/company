@@ -1,0 +1,13 @@
+{
+  "name": "functions",
+  "description": "요찬토건 나라장터 입찰정보 수집 Cloud Functions",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^7.3.2"
+  }
+}
