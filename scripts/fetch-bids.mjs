@@ -8,6 +8,11 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import dns from 'node:dns'
+
+// GitHub Actions(우분투 러너)는 IPv6를 우선 사용하는데, data.go.kr 서버가 IPv6 경로에서
+// 연결을 받지 않아 "fetch failed"가 발생하는 경우가 있다. IPv4를 우선하도록 강제한다.
+dns.setDefaultResultOrder('ipv4first')
 
 async function loadDotEnv() {
   try {
@@ -50,6 +55,20 @@ function encodeServiceKey(key) {
   return /%[0-9A-Fa-f]{2}/.test(key) ? key : encodeURIComponent(key)
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function fetchOnce(url) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15000)
+  try {
+    return await fetch(url, { signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 async function fetchKeyword(serviceKey, keyword) {
   const now = new Date()
   const begin = new Date(now.getTime() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
@@ -65,7 +84,30 @@ async function fetchKeyword(serviceKey, keyword) {
   })
 
   const url = `${ENDPOINT}?ServiceKey=${encodeServiceKey(serviceKey)}&${params}`
-  const res = await fetch(url)
+
+  let res
+  let lastNetworkError
+  const attempts = 3
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      res = await fetchOnce(url)
+      lastNetworkError = undefined
+      break
+    } catch (err) {
+      lastNetworkError = err
+      const cause = err.cause ? ` / cause: ${err.cause.code ?? err.cause.message ?? err.cause}` : ''
+      console.warn(`[${keyword}] 네트워크 요청 실패 (시도 ${attempt}/${attempts}): ${err.message}${cause}`)
+      if (attempt < attempts) await sleep(2000 * attempt)
+    }
+  }
+
+  if (lastNetworkError) {
+    const cause = lastNetworkError.cause
+      ? ` / cause: ${lastNetworkError.cause.code ?? lastNetworkError.cause.message ?? lastNetworkError.cause}`
+      : ''
+    throw new Error(`나라장터 API 연결 실패 (${keyword}): ${lastNetworkError.message}${cause}`)
+  }
+
   const bodyText = await res.text()
 
   if (!res.ok) {
