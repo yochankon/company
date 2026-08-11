@@ -130,11 +130,21 @@ async function main() {
   for (const keyword of KEYWORDS) {
     try {
       const items = await fetchKeyword(serviceKey, keyword)
+      let regionMatched = 0
+      let stillOpenMatched = 0
       for (const item of items) {
         if (!isInTargetRegion(item)) continue
+        regionMatched++
         if (!isStillOpen(item)) continue
+        stillOpenMatched++
         const bid = toBid(item)
         byId.set(bid.id, bid)
+      }
+      console.log(
+        `[${keyword}] 전체 ${items.length}건 -> 지역일치 ${regionMatched}건 -> 마감전 ${stillOpenMatched}건`,
+      )
+      if (items.length > 0 && regionMatched === 0) {
+        console.log(`[${keyword}] 예시 공고기관명:`, items.slice(0, 5).map((i) => i.ntceInsttNm))
       }
     } catch (err) {
       console.error(err.message)
