@@ -78,6 +78,7 @@ function Contact() {
                 <label htmlFor="message">문의 내용</label>
                 <textarea id="message" name="message" rows="5" required />
               </div>
+              <input type="hidden" name="to_email" value="kong1020@naver.com" />
 
               {status === 'not-configured' && (
                 <p className="form-error">
