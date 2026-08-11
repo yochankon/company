@@ -12,7 +12,7 @@ permissions:
 # 동시에 여러 실행이 겹쳐서 git push가 충돌하는 것을 방지 - 한 번에 하나씩만 실행
 concurrency:
   group: fetch-bids
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   fetch:
