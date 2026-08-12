@@ -4,12 +4,14 @@ export const company = {
   ceo: '공미숙',
   founded: '1997.12.29',
   foundedYear: 1997,
-  address: '서울특별시 영등포구 당산로32길',
+  address: '서울특별시 영등포구 선유로 27, 610호 (문래동5가, 대륭빌딩)',
   phone: '02-2068-3114',
   industry: '전문건설업',
   fields: ['상하수도설비공사', '석공사'],
   employees: 2,
-  capabilityRating: '10억원',
+  capabilityRating: '25억원',
+  infoAsOf: '2026.06.01',
+  infoSource: '대한전문건설협회 서울특별시회 경영상태등의 확인서',
   slogan: '30년 가까운 경험, 믿을 수 있는 시공',
 }
 

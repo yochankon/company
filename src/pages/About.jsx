@@ -77,6 +77,9 @@ function About() {
             <dd>{company.phone}</dd>
           </div>
         </div>
+        <p className="info-source">
+          {company.infoAsOf} 기준 · {company.infoSource}
+        </p>
       </section>
 
       <section className="section">

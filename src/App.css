@@ -478,6 +478,12 @@
   font-weight: 500;
 }
 
+.info-source {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--color-gray-400);
+}
+
 .timeline {
   display: flex;
   flex-direction: column;
