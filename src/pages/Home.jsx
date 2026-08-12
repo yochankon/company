@@ -5,7 +5,7 @@ import PipeIllustration from '../components/PipeIllustration.jsx'
 const stats = [
   { label: '설립', value: company.founded },
   { label: '시공능력평가액', value: company.capabilityRating },
-  { label: '전문 분야', value: `${company.fields.length}개 분야` },
+  { label: '전문 분야', value: company.fields[0] },
 ]
 
 function Home() {
