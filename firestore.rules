@@ -9,6 +9,17 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // 누적 방문자 수: 누구나 읽을 수 있고, count 필드를 정확히 1씩 늘리는 쓰기만 허용
+    // (필드 이름 변경, 한번에 여러 개씩 증가, 감소 등은 모두 막는다)
+    match /meta/visitors {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['count'])
+                    && request.resource.data.count == 1;
+      allow update: if request.resource.data.keys().hasOnly(['count'])
+                    && request.resource.data.count == resource.data.count + 1;
+      allow delete: if false;
+    }
+
     match /meta/{docId} {
       allow read: if true;
       allow write: if false;
