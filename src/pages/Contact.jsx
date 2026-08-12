@@ -56,6 +56,14 @@ function Contact() {
               </dd>
             </div>
           </div>
+
+          <iframe
+            className="contact-map"
+            title="오시는 길 지도"
+            src={`https://www.google.com/maps?q=${encodeURIComponent(company.address)}&output=embed`}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
         </div>
 
         <form ref={formRef} className="contact-form" onSubmit={handleSubmit}>
