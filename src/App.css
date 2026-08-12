@@ -482,9 +482,21 @@
   color: var(--color-navy-800);
 }
 
+.signature-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+
 .signature {
   font-weight: 700;
-  margin-top: 8px;
+}
+
+.seal-stamp {
+  width: 46px;
+  height: 46px;
+  flex: none;
 }
 
 .info-table {

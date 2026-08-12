@@ -1,4 +1,5 @@
 import { company, history } from '../data/company.js'
+import SealStamp from '../components/SealStamp.jsx'
 
 function About() {
   return (
@@ -35,7 +36,10 @@ function About() {
             앞으로도 정직한 시공과 책임감 있는 사후 관리로, 이름처럼 높이 빛나는 {company.name}이
             되겠습니다. 감사합니다.
           </p>
-          <p className="signature">{company.name} 대표 {company.ceo}</p>
+          <div className="signature-row">
+            <p className="signature">{company.name} 대표 {company.ceo}</p>
+            <SealStamp className="seal-stamp" />
+          </div>
         </div>
       </section>
 
