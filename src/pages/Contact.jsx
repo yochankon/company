@@ -80,7 +80,19 @@ function Contact() {
               </div>
               <div className="form-field">
                 <label htmlFor="phone">연락처</label>
-                <input id="phone" name="user_phone" type="tel" required />
+                <input
+                  id="phone"
+                  name="user_phone"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9\-]*"
+                  maxLength="20"
+                  placeholder="010-1234-5678"
+                  onInput={(e) => {
+                    e.target.value = e.target.value.replace(/[^0-9-]/g, '')
+                  }}
+                  required
+                />
               </div>
               <div className="form-field">
                 <label htmlFor="message">문의 내용</label>
