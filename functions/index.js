@@ -11,7 +11,8 @@ const G2B_SERVICE_KEY = defineSecret('G2B_SERVICE_KEY')
 const ENDPOINT = 'https://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoCnstwkPPSSrch'
 const KEYWORDS = ['상수도', '하수도']
 const REGION_KEYWORDS = ['서울', '경기', '인천']
-const LOOKBACK_DAYS = 21
+const LOOKBACK_DAYS = 30
+const RETENTION_DAYS = 30
 
 function formatDateTime(date) {
   const pad = (n) => String(n).padStart(2, '0')
@@ -102,11 +103,10 @@ function isInTargetRegion(item) {
   return REGION_KEYWORDS.some((region) => haystack.includes(region))
 }
 
-function isStillOpen(item) {
-  if (!item.bidClseDt) return true
-  const deadline = new Date(item.bidClseDt.replace(' ', 'T'))
-  if (Number.isNaN(deadline.getTime())) return true
-  return deadline.getTime() >= Date.now()
+function parseDateSafe(value) {
+  if (!value) return null
+  const d = new Date(String(value).replace(' ', 'T'))
+  return Number.isNaN(d.getTime()) ? null : d
 }
 
 function toBid(item) {
@@ -130,16 +130,13 @@ async function collectBids(serviceKey) {
     try {
       const items = await fetchKeyword(serviceKey, keyword)
       let regionMatched = 0
-      let stillOpenMatched = 0
       for (const item of items) {
         if (!isInTargetRegion(item)) continue
         regionMatched++
-        if (!isStillOpen(item)) continue
-        stillOpenMatched++
         const bid = toBid(item)
         byId.set(bid.id, bid)
       }
-      console.log(`[${keyword}] 전체 ${items.length}건 -> 지역일치 ${regionMatched}건 -> 마감전 ${stillOpenMatched}건`)
+      console.log(`[${keyword}] 전체 ${items.length}건 -> 지역일치 ${regionMatched}건`)
     } catch (err) {
       console.error(err.message)
     }
@@ -148,28 +145,44 @@ async function collectBids(serviceKey) {
   return [...byId.values()].sort((a, b) => a.deadline.localeCompare(b.deadline))
 }
 
+// 매번 전체 삭제 후 다시 쓰지 않고, 새로 조회된 공고는 추가/갱신(upsert)하고
+// 공고일 기준 30일이 지난 공고만 정리한다.
 async function syncBidsToFirestore(serviceKey) {
   const db = getFirestore()
-  const bids = await collectBids(serviceKey)
+  const newBids = await collectBids(serviceKey)
 
-  const existing = await db.collection('bids').listDocuments()
-  const batchDelete = db.batch()
-  existing.forEach((docRef) => batchDelete.delete(docRef))
-  if (existing.length > 0) await batchDelete.commit()
+  const existingSnap = await db.collection('bids').get()
+  const existingIds = new Set(existingSnap.docs.map((d) => d.id))
 
-  if (bids.length > 0) {
+  let addedCount = 0
+  if (newBids.length > 0) {
     const batchWrite = db.batch()
-    for (const bid of bids) {
+    for (const bid of newBids) {
       const docId = bid.id.replace(/[/\s]/g, '_')
-      batchWrite.set(db.collection('bids').doc(docId), bid)
+      if (!existingIds.has(docId)) addedCount++
+      batchWrite.set(db.collection('bids').doc(docId), bid, { merge: true })
     }
     await batchWrite.commit()
   }
 
-  await db.collection('meta').doc('bids').set({ updatedAt: new Date().toISOString(), count: bids.length })
+  const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000
+  const batchDelete = db.batch()
+  let expiredCount = 0
+  existingSnap.docs.forEach((docSnap) => {
+    const announceDate = parseDateSafe(docSnap.data().announceDate)
+    if (announceDate && announceDate.getTime() < cutoff) {
+      batchDelete.delete(docSnap.ref)
+      expiredCount++
+    }
+  })
+  if (expiredCount > 0) await batchDelete.commit()
 
-  console.log(`${bids.length}건 Firestore 저장 완료`)
-  return bids.length
+  const totalCount = existingIds.size + addedCount - expiredCount
+
+  await db.collection('meta').doc('bids').set({ updatedAt: new Date().toISOString(), count: totalCount })
+
+  console.log(`신규 ${addedCount}건 추가, 조회 ${newBids.length}건, 만료 삭제 ${expiredCount}건, 총 보관 ${totalCount}건`)
+  return { added: addedCount, matched: newBids.length, total: totalCount }
 }
 
 exports.fetchBids = onSchedule(
@@ -245,8 +258,8 @@ exports.fetchBidsNow = onRequest(
         return
       }
 
-      const count = await syncBidsToFirestore(G2B_SERVICE_KEY.value())
-      res.status(200).json({ count, remaining })
+      const result = await syncBidsToFirestore(G2B_SERVICE_KEY.value())
+      res.status(200).json({ ...result, remaining })
     } catch (err) {
       console.error(err)
       res.status(500).json({ error: 'internal_error', message: err.message })

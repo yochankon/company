@@ -45,6 +45,20 @@ function formatPrice(value) {
   return `추정가격 ${num.toLocaleString('ko-KR')}원`
 }
 
+// 진행 중인 공고를 마감이 임박한 순으로 먼저 보여주고, 마감된 공고는 그 뒤에 최근 마감 순으로 붙인다
+function sortBids(list) {
+  const open = []
+  const closed = []
+  for (const bid of list) {
+    const dday = getDday(bid.deadline)
+    if (dday !== null && dday < 0) closed.push(bid)
+    else open.push(bid)
+  }
+  open.sort((a, b) => a.deadline.localeCompare(b.deadline))
+  closed.sort((a, b) => b.deadline.localeCompare(a.deadline))
+  return [...open, ...closed]
+}
+
 function Bids() {
   const [bids, setBids] = useState(null)
   const [updatedAt, setUpdatedAt] = useState(null)
@@ -55,7 +69,7 @@ function Bids() {
   useEffect(() => {
     const unsubBids = onSnapshot(
       query(collection(db, 'bids'), orderBy('deadline', 'asc')),
-      (snapshot) => setBids(snapshot.docs.map((d) => d.data())),
+      (snapshot) => setBids(sortBids(snapshot.docs.map((d) => d.data()))),
       () => setError(true),
     )
 
@@ -83,10 +97,10 @@ function Bids() {
         setRefreshMessage({ tone: 'limited', text: data.message || '오늘 조회 가능 횟수를 모두 사용했습니다. 내일 다시 시도해주세요.' })
       } else if (!res.ok) {
         setRefreshMessage({ tone: 'error', text: '최신 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.' })
-      } else if (!data.count) {
-        setRefreshMessage({ tone: 'empty', text: '최신 정보를 확인했지만 조건에 맞는 새 공고가 없습니다.' })
+      } else if (!data.added) {
+        setRefreshMessage({ tone: 'empty', text: '최신 정보를 확인했지만 새로 추가된 공고가 없습니다.' })
       } else {
-        setRefreshMessage({ tone: 'success', text: `최신 정보 ${data.count}건을 확인했습니다.` })
+        setRefreshMessage({ tone: 'success', text: `새로운 공고 ${data.added}건을 추가했습니다.` })
       }
     } catch {
       setRefreshMessage({ tone: 'error', text: '최신 정보를 가져오지 못했습니다. 잠시 후 다시 시도해주세요.' })
