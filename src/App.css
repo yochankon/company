@@ -378,9 +378,35 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
-.card-grid-single {
-  grid-template-columns: minmax(0, 480px);
-  justify-content: center;
+.field-showcase {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  align-items: center;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.field-illustration {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.field-showcase-content {
+  padding: 32px;
+}
+
+.field-showcase-content h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.field-showcase-content p {
+  color: var(--color-gray-600);
+  font-size: 15px;
+  margin-bottom: 16px;
 }
 
 .field-card,
@@ -967,6 +993,14 @@
   .card-grid,
   .card-grid-3 {
     grid-template-columns: 1fr;
+  }
+
+  .field-showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .field-illustration {
+    aspect-ratio: 16 / 9;
   }
 
   .service-block,

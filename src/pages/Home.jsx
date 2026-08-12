@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { company, businessFields } from '../data/company.js'
+import PipeIllustration from '../components/PipeIllustration.jsx'
 
 const stats = [
   { label: '설립', value: company.founded },
@@ -43,16 +44,15 @@ function Home() {
           <h2>사업분야</h2>
           <p>상하수도설비공사 분야에서 꾸준히 실적을 쌓아가고 있습니다.</p>
         </div>
-        <div className={`card-grid ${businessFields.length === 1 ? 'card-grid-single' : ''}`}>
-          {businessFields.map((field) => (
-            <div key={field.id} className="field-card">
-              <h3>{field.title}</h3>
-              <p>{field.summary}</p>
-              <Link to="/services" className="card-link">
-                자세히 보기 &rarr;
-              </Link>
-            </div>
-          ))}
+        <div className="field-showcase">
+          <PipeIllustration className="field-illustration" />
+          <div className="field-showcase-content">
+            <h3>{businessFields[0].title}</h3>
+            <p>{businessFields[0].summary}</p>
+            <Link to="/services" className="card-link">
+              자세히 보기 &rarr;
+            </Link>
+          </div>
         </div>
       </section>
 
