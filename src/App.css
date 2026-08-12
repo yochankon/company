@@ -378,6 +378,11 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
+.card-grid-single {
+  grid-template-columns: minmax(0, 480px);
+  justify-content: center;
+}
+
 .field-card,
 .promise-card {
   background: var(--color-white);

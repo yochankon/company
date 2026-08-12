@@ -6,8 +6,8 @@ function Services() {
     <div className="page">
       <section className="page-hero">
         <p className="eyebrow">사업분야</p>
-        <h1>전문성을 갖춘 두 가지 시공 분야</h1>
-        <p className="hero-lead">현장 경험을 바탕으로 상하수도설비공사와 석공사를 전문적으로 수행합니다.</p>
+        <h1>전문성을 갖춘 상하수도설비공사</h1>
+        <p className="hero-lead">현장 경험을 바탕으로 상하수도설비공사를 전문적으로 수행합니다.</p>
       </section>
 
       <section className="section">

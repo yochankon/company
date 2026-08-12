@@ -41,9 +41,9 @@ function Home() {
       <section className="section">
         <div className="section-head">
           <h2>사업분야</h2>
-          <p>상하수도설비공사와 석공사, 두 분야에서 꾸준히 실적을 쌓아가고 있습니다.</p>
+          <p>상하수도설비공사 분야에서 꾸준히 실적을 쌓아가고 있습니다.</p>
         </div>
-        <div className="card-grid">
+        <div className={`card-grid ${businessFields.length === 1 ? 'card-grid-single' : ''}`}>
           {businessFields.map((field) => (
             <div key={field.id} className="field-card">
               <h3>{field.title}</h3>
