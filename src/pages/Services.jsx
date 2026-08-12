@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { businessFields } from '../data/company.js'
+import PipeIllustration from '../components/PipeIllustration.jsx'
 
 function Services() {
   return (
@@ -13,9 +14,8 @@ function Services() {
       <section className="section">
         {businessFields.map((field, i) => (
           <div key={field.id} className={`service-block ${i % 2 === 1 ? 'service-block-reverse' : ''}`}>
-            <div className="service-media" aria-hidden="true">
-              <span className="service-number">0{i + 1}</span>
-            </div>
+            <PipeIllustration className="service-media" />
+
             <div className="service-content">
               <h2>{field.title}</h2>
               <p>{field.description}</p>

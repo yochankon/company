@@ -587,18 +587,11 @@
 }
 
 .service-media {
-  background: var(--color-navy-900);
+  display: block;
+  width: 100%;
   border-radius: var(--radius);
   aspect-ratio: 4 / 3;
-  display: grid;
-  place-items: center;
-}
-
-.service-number {
-  font-family: var(--font-serif);
-  font-size: 56px;
-  font-weight: 700;
-  color: var(--color-orange-500);
+  overflow: hidden;
 }
 
 .service-content h2 {
